@@ -6,28 +6,30 @@
 import axios from 'axios';
 import { config } from '../config/env.js';
 
-/**
- * Monta o texto do alerta, com formatação leve para terminal e Telegram.
- */
+const GRAU_DESC = { G1: '1ª Instância (início do processo)', G2: '2ª Instância (recursos e apelações)', JE: 'Juizado Especial Cível', TR: 'Turma Recursal' };
+
 function montarMensagem({ cliente, numero, tribunal, data, resumo, novas, classe, assuntoPrincipal, orgaoJulgador, dataAjuizamento, grau }) {
   const dataLegivel = formatarData(data);
   const dataAjuizamentoLegivel = formatarData(dataAjuizamento);
   const municipio = orgaoJulgador?.municipio ? ` — ${orgaoJulgador.municipio}` : '';
+  const grauDesc = GRAU_DESC[grau] || grau || '—';
 
   let msg =
-    `🔔 *NOVA MOVIMENTAÇÃO*\n` +
+    `🔔 *ATUALIZAÇÃO NO SEU PROCESSO*\n` +
     `\n👤 *Cliente:* ${cliente || '(sem nome)'}\n` +
-    `📁 *Processo:* ${numero} [${tribunal || '?'}]\n`;
+    `📁 *Processo:* ${numero}\n` +
+    `　　*Tribunal:* ${tribunal || '?'} — Justiça Estadual\n`;
 
-  if (classe?.nome) msg += `⚖️ *Classe:* ${classe.nome}\n`;
-  if (assuntoPrincipal?.nome) msg += `📋 *Assunto:* ${assuntoPrincipal.nome}\n`;
-  if (orgaoJulgador?.nome) msg += `🏛️ *Vara:* ${orgaoJulgador.nome}${municipio}\n`;
-  if (grau) msg += `🔰 *Grau:* ${grau}\n`;
-  if (dataAjuizamento) msg += `📄 *Ajuizamento:* ${dataAjuizamentoLegivel}\n`;
+  if (classe?.nome) msg += `\n⚖️ *Classe:* ${classe.nome}\n　　(Tipo da ação — como a Justiça classifica seu caso)\n`;
+  if (assuntoPrincipal?.nome) msg += `📋 *Assunto:* ${assuntoPrincipal.nome}\n　　(Motivo principal do processo)\n`;
+  if (orgaoJulgador?.nome) msg += `🏛️ *Vara:* ${orgaoJulgador.nome}${municipio}\n　　(Cartório onde o processo está)\n`;
+  if (grau) msg += `🔰 *Instância:* ${grauDesc}\n`;
+  if (dataAjuizamento) msg += `📄 *Início do processo:* ${dataAjuizamentoLegivel}\n　　(Data em que a ação foi protocolada)\n`;
 
-  msg += `📅 *Data Mov.:* ${dataLegivel}\n` +
-    `🆕 *Novidades:* ${novas}\n` +
-    `\n📝 *Resumo:*\n${resumo}`;
+  msg += `\n📅 *Última movimentação:* ${dataLegivel}\n` +
+    `🆕 *${novas} nova(s) desde a última consulta*\n` +
+    (cliente ? `\n📝 *O que aconteceu no processo de ${cliente}:*\n` : `\n📝 *O que aconteceu:*\n`) +
+    `${resumo}`;
 
   return msg;
 }
