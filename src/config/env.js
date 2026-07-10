@@ -70,7 +70,7 @@ export const config = {
   },
   ai: {
     apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   },
   runtime: {
     concurrency: parseIntSafe(process.env.CONCURRENCY, 2),

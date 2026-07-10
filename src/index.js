@@ -76,7 +76,15 @@ async function processOne(processo) {
     return null;
   }
 
-  const { movimentos, dataHoraUltimaMovimentacao } = resultado;
+  const {
+    movimentos,
+    dataHoraUltimaMovimentacao,
+    classe,
+    assuntoPrincipal,
+    orgaoJulgador,
+    dataAjuizamento,
+    grau,
+  } = resultado;
 
   // 3. Compara datas — só prossegue se houver novidade.
   if (!isMovimentoNovo(dataUltimaMovimentacao, dataHoraUltimaMovimentacao)) {
@@ -102,6 +110,11 @@ async function processOne(processo) {
     data: dataHoraUltimaMovimentacao,
     resumo,
     novas,
+    classe,
+    assuntoPrincipal,
+    orgaoJulgador,
+    dataAjuizamento,
+    grau,
   });
 
   // 6. Retorna a nova data para o batch update da planilha.

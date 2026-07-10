@@ -85,8 +85,21 @@ export async function fetchMovements(numeroProcesso, tribunal) {
 
   if (ordenados.length === 0) return null;
 
+  // Extrai metadados do processo
+  const classe = source.classe || null;
+  const assuntos = Array.isArray(source.assuntos) ? source.assuntos : [];
+  const orgaoJulgador = source.orgaoJulgador || null;
+  const dataAjuizamento = source.dataAjuizamento || null;
+  const grau = source.grau || null;
+  const assuntoPrincipal = assuntos.find((a) => a.principal) || assuntos[0] || null;
+
   return {
     movimentos: ordenados,
     dataHoraUltimaMovimentacao: ordenados[0].dataHora,
+    classe,
+    assuntoPrincipal,
+    orgaoJulgador,
+    dataAjuizamento,
+    grau,
   };
 }

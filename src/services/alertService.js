@@ -8,27 +8,45 @@ import { config } from '../config/env.js';
 
 /**
  * Monta o texto do alerta, com formatação leve para terminal e Telegram.
- * @param {{ cliente: string, numero: string, tribunal: string, data: string, resumo: string, novas: number }} info
  */
-function montarMensagem({ cliente, numero, tribunal, data, resumo, novas }) {
+function montarMensagem({ cliente, numero, tribunal, data, resumo, novas, classe, assuntoPrincipal, orgaoJulgador, dataAjuizamento, grau }) {
   const dataLegivel = formatarData(data);
-  return (
+  const dataAjuizamentoLegivel = formatarData(dataAjuizamento);
+  const municipio = orgaoJulgador?.municipio ? ` — ${orgaoJulgador.municipio}` : '';
+
+  let msg =
     `🔔 *NOVA MOVIMENTAÇÃO*\n` +
     `\n👤 *Cliente:* ${cliente || '(sem nome)'}\n` +
-    `📁 *Processo:* ${numero} [${tribunal || '?'}]\n` +
-    `📅 *Data:* ${dataLegivel}\n` +
+    `📁 *Processo:* ${numero} [${tribunal || '?'}]\n`;
+
+  if (classe?.nome) msg += `⚖️ *Classe:* ${classe.nome}\n`;
+  if (assuntoPrincipal?.nome) msg += `📋 *Assunto:* ${assuntoPrincipal.nome}\n`;
+  if (orgaoJulgador?.nome) msg += `🏛️ *Vara:* ${orgaoJulgador.nome}${municipio}\n`;
+  if (grau) msg += `🔰 *Grau:* ${grau}\n`;
+  if (dataAjuizamento) msg += `📄 *Ajuizamento:* ${dataAjuizamentoLegivel}\n`;
+
+  msg += `📅 *Data Mov.:* ${dataLegivel}\n` +
     `🆕 *Novidades:* ${novas}\n` +
-    `\n📝 *Resumo:*\n${resumo}`
-  );
+    `\n📝 *Resumo:*\n${resumo}`;
+
+  return msg;
 }
 
-/** Converte data ISO (ex.: 2025-12-03T00:39:44.000Z) em DD/MM/AAAA HH:mm legível. */
-function formatarData(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso; // fallback: mostra como veio
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+/** Converte data ISO (ex.: 2025-12-03T00:39:44.000Z) ou YYYYMMDDHHmmss em DD/MM/AAAA HH:mm legível. */
+function formatarData(raw) {
+  if (!raw) return '—';
+  // Tenta parsear ISO (new Date() nativo)
+  let d = new Date(raw);
+  if (!Number.isNaN(d.getTime())) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+  }
+  // Tenta parsear YYYYMMDDHHmmss (formato comum do Datajud)
+  const match = String(raw).match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
+  }
+  return raw; // fallback: mostra como veio
 }
 
 /**
