@@ -8,6 +8,30 @@ import { config } from '../config/env.js';
 
 const GRAU_DESC = { G1: '1ª Instância (início do processo)', G2: '2ª Instância (recursos e apelações)', JE: 'Juizado Especial Cível', TR: 'Turma Recursal' };
 
+function nomeTribunal(sigla) {
+  if (!sigla) return '—';
+  const nomes = {
+    stf: 'Supremo Tribunal Federal',
+    stj: 'Superior Tribunal de Justiça',
+    tst: 'Tribunal Superior do Trabalho',
+    tse: 'Tribunal Superior Eleitoral',
+    trf1: 'Tribunal Regional Federal da 1ª Região (DF, MG, GO, MT, BA, PI, MA, PA, AM, RR, AC, RO, TO)',
+    trf2: 'Tribunal Regional Federal da 2ª Região (RJ, ES)',
+    trf3: 'Tribunal Regional Federal da 3ª Região (SP, MS)',
+    trf4: 'Tribunal Regional Federal da 4ª Região (RS, SC, PR)',
+    trf5: 'Tribunal Regional Federal da 5ª Região (PE, CE, RN, PB, SE, AL)',
+    trf6: 'Tribunal Regional Federal da 6ª Região (MG)',
+  };
+  if (nomes[sigla]) return nomes[sigla];
+  // Infere pela sigla
+  if (sigla.startsWith('trf')) return `Justiça Federal — ${sigla.toUpperCase()}`;
+  if (sigla.startsWith('trt')) return `Justiça do Trabalho — ${sigla.toUpperCase()}`;
+  if (sigla.startsWith('tre')) return `Justiça Eleitoral — ${sigla.toUpperCase()}`;
+  if (sigla.startsWith('tjm')) return `Justiça Militar Estadual — ${sigla.toUpperCase()}`;
+  if (sigla.startsWith('tj')) return `Tribunal de Justiça — ${sigla.toUpperCase()}`;
+  return `Justiça ${sigla.toUpperCase()}`;
+}
+
 function montarMensagem({ cliente, numero, tribunal, data, resumo, novas, classe, assuntoPrincipal, orgaoJulgador, dataAjuizamento, grau }) {
   const dataLegivel = formatarData(data);
   const dataAjuizamentoLegivel = formatarData(dataAjuizamento);
@@ -18,7 +42,7 @@ function montarMensagem({ cliente, numero, tribunal, data, resumo, novas, classe
     `🔔 *ATUALIZAÇÃO NO SEU PROCESSO*\n` +
     `\n👤 *Cliente:* ${cliente || '(sem nome)'}\n` +
     `📁 *Processo:* ${numero}\n` +
-    `　　*Tribunal:* ${tribunal || '?'} — Justiça Estadual\n`;
+    `　　*Tribunal:* ${nomeTribunal(tribunal)}\n`;
 
   if (classe?.nome) msg += `\n⚖️ *Classe:* ${classe.nome}\n　　(Tipo da ação — como a Justiça classifica seu caso)\n`;
   if (assuntoPrincipal?.nome) msg += `📋 *Assunto:* ${assuntoPrincipal.nome}\n　　(Motivo principal do processo)\n`;
